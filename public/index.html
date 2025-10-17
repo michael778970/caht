@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Chat App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat App with Settings Popup</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -36,17 +36,22 @@
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
     .app {
       display: flex;
-      height: 100vh;
+      flex: 1;
       overflow: hidden;
+      height: 100%;
     }
 
     /* Sidebar (Friends) */
     .sidebar {
-      width: 250px;
+      width: 280px;
       background: var(--surface);
       border-right: 1px solid var(--border);
       display: flex;
@@ -56,7 +61,8 @@
 
     .sidebar h2 {
       margin-bottom: 1rem;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      font-weight: 600;
     }
 
     .friends-list {
@@ -73,11 +79,13 @@
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s ease;
     }
 
     .friend.selected {
       background-color: var(--accent);
-      color: #fff;
+      color: white;
     }
 
     .friend button {
@@ -85,6 +93,13 @@
       border: none;
       color: inherit;
       cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .friend:hover:not(.selected) {
+      background-color: #ddd;
     }
 
     .add-friend {
@@ -98,6 +113,7 @@
       background: var(--input-bg);
       border: 1px solid var(--border);
       border-radius: 4px;
+      font-size: 1rem;
     }
 
     .add-friend button {
@@ -108,6 +124,12 @@
       border-radius: 4px;
       font-weight: 600;
       cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+
+    .add-friend button:hover {
+      background: #1669c1;
     }
 
     /* Chat Main */
@@ -122,6 +144,7 @@
       padding: 1rem;
       border-bottom: 1px solid var(--border);
       font-weight: 600;
+      font-size: 1.1rem;
     }
 
     .chat-messages {
@@ -139,6 +162,7 @@
       border-radius: 16px;
       font-size: 0.95rem;
       word-break: break-word;
+      white-space: pre-wrap;
     }
 
     .user {
@@ -167,6 +191,7 @@
       border-radius: 20px;
       border: 1px solid #ccc;
       background-color: var(--input-bg);
+      font-size: 1rem;
     }
 
     .chat-input button {
@@ -177,106 +202,203 @@
       color: white;
       font-weight: 600;
       cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
     }
 
-    /* Right Sidebar (Settings) */
-    .settings {
-      width: 250px;
+    .chat-input button:hover {
+      background-color: #1669c1;
+    }
+
+    /* Settings Button */
+    .settings-button {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      z-index: 1000;
+      transition: background-color 0.3s ease;
+    }
+
+    .settings-button:hover {
+      background: #1669c1;
+    }
+
+    /* Settings Popup Overlay */
+    .settings-popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .settings-popup-overlay.active {
+      display: flex;
+    }
+
+    /* Settings Popup Content */
+    .settings-popup {
       background: var(--surface);
-      border-left: 1px solid var(--border);
-      padding: 1rem;
+      border-radius: 8px;
+      width: 320px;
+      max-width: 90vw;
+      padding: 1.5rem;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 1rem;
+      position: relative;
     }
 
-    .settings h2 {
-      margin-bottom: 1rem;
+    .settings-popup h2 {
+      margin: 0 0 1rem 0;
+      font-weight: 700;
+      font-size: 1.3rem;
     }
 
-    .settings .account {
-      margin-bottom: 2rem;
+    .settings-popup label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.25rem;
     }
 
-    .theme-toggle {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: auto;
+    .settings-popup input[type="text"] {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 1rem;
+      background: var(--input-bg);
+      color: var(--text);
     }
 
-    .theme-toggle label {
-      font-size: 0.95rem;
+    .settings-popup input[type="checkbox"] {
+      transform: scale(1.3);
+      margin-right: 0.5rem;
+      vertical-align: middle;
+      cursor: pointer;
     }
 
-    .theme-toggle input {
-      transform: scale(1.2);
+    .settings-popup .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text);
     }
 
-    @media (max-width: 900px) {
-      .settings {
-        display: none;
+    .settings-popup .close-btn:hover {
+      color: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .sidebar {
+        width: 200px;
+      }
+
+      .chat-input input {
+        font-size: 0.9rem;
+      }
+
+      .chat-input button {
+        font-size: 0.9rem;
       }
     }
   </style>
 </head>
-
 <body data-theme="light">
+
+  <!-- Settings popup button -->
+  <button class="settings-button" id="openSettingsBtn" aria-label="Open settings">Settings ⚙️</button>
+
   <div class="app">
-    <!-- Left Sidebar -->
+    <!-- Sidebar -->
     <aside class="sidebar">
       <h2>Friends</h2>
-      <div class="friends-list" id="friendsList"></div>
+      <div class="friends-list" id="friendsList" tabindex="0" aria-label="Friends list"></div>
       <div class="add-friend">
-        <input id="friendInput" type="text" placeholder="Add friend..." />
-        <button onclick="addFriend()">Add</button>
+        <input id="friendInput" type="text" placeholder="Add friend..." aria-label="Add friend name" />
+        <button id="addFriendBtn">Add</button>
       </div>
     </aside>
 
-    <!-- Main Chat -->
-    <main class="chat">
-      <div class="chat-header" id="chatHeader">Select a friend</div>
+    <!-- Chat Main -->
+    <main class="chat" aria-live="polite" aria-atomic="false" aria-relevant="additions">
+      <div class="chat-header" id="chatHeader" aria-live="polite">Select a friend</div>
       <div class="chat-messages" id="chatMessages"></div>
       <div class="chat-input">
-        <input id="messageInput" type="text" placeholder="Type a message..." />
-        <button onclick="sendMessage()">Send</button>
+        <input id="messageInput" type="text" placeholder="Type a message..." aria-label="Type your message" autocomplete="off" />
+        <button id="sendMessageBtn">Send</button>
       </div>
     </main>
-
-    <!-- Right Sidebar -->
-    <aside class="settings">
-      <div>
-        <h2>Account</h2>
-        <div class="account">
-          <p><strong>Username:</strong> <span id="usernameDisplay">User123</span></p>
-        </div>
-        <h2>Settings</h2>
-        <div class="theme-toggle">
-          <input type="checkbox" id="themeSwitch" />
-          <label for="themeSwitch">Dark Mode</label>
-        </div>
-      </div>
-    </aside>
   </div>
 
-  <script>
+  <!-- Settings Popup -->
+  <div class="settings-popup-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
+    <div class="settings-popup">
+      <button class="close-btn" id="closeSettingsBtn" aria-label="Close settings">&times;</button>
+      <h2 id="settingsTitle">Settings & Account</h2>
+
+      <label for="usernameInput">Username:</label>
+      <input type="text" id="usernameInput" maxlength="20" />
+
+      <label>
+        <input type="checkbox" id="themeSwitch" />
+        Dark Mode
+      </label>
+    </div>
+  </div>
+
+<script>
+  (() => {
     let currentFriend = null;
     const friends = {};
+    let username = 'User123';
+
+    const friendsList = document.getElementById('friendsList');
+    const friendInput = document.getElementById('friendInput');
+    const addFriendBtn = document.getElementById('addFriendBtn');
     const chatHeader = document.getElementById('chatHeader');
     const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('messageInput');
-    const friendsList = document.getElementById('friendsList');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
 
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const usernameInput = document.getElementById('usernameInput');
+    const themeSwitch = document.getElementById('themeSwitch');
+    const body = document.body;
+
+    // Add friend
     function addFriend() {
-      const input = document.getElementById('friendInput');
-      const name = input.value.trim();
-      if (!name || friends[name]) return;
+      const name = friendInput.value.trim();
+      if (!name) return alert("Friend name cannot be empty.");
+      if (friends[name]) {
+        alert("Friend already exists.");
+        return;
+      }
       friends[name] = [];
+      friendInput.value = '';
       renderFriends();
-      input.value = '';
     }
 
+    // Remove friend
     function removeFriend(name) {
+      if (!confirm(`Remove friend "${name}"?`)) return;
       delete friends[name];
       if (currentFriend === name) {
         currentFriend = null;
@@ -286,54 +408,137 @@
       renderFriends();
     }
 
+    // Select friend
     function selectFriend(name) {
+      if (currentFriend === name) return; // Already selected
       currentFriend = name;
       chatHeader.textContent = `Chatting with ${name}`;
-      renderMessages();
       renderFriends();
+      renderMessages();
+      messageInput.focus();
     }
 
+    // Render friends list
     function renderFriends() {
       friendsList.innerHTML = '';
-      for (const name in friends) {
+      Object.keys(friends).forEach(name => {
         const el = document.createElement('div');
         el.className = 'friend' + (currentFriend === name ? ' selected' : '');
+        el.tabIndex = 0;
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-pressed', currentFriend === name ? 'true' : 'false');
         el.innerHTML = `
-          <span onclick="selectFriend('${name}')">${name}</span>
-          <button onclick="removeFriend('${name}')">✖</button>`;
+          <span>${name}</span>
+          <button aria-label="Remove friend ${name}">&times;</button>
+        `;
+        el.querySelector('button').addEventListener('click', e => {
+          e.stopPropagation();
+          removeFriend(name);
+        });
+        el.addEventListener('click', () => selectFriend(name));
+        el.addEventListener('keydown', e => {
+          if(e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectFriend(name);
+          }
+        });
         friendsList.appendChild(el);
-      }
+      });
     }
 
+    // Render messages for current friend
     function renderMessages() {
-      if (!currentFriend) return;
+      if (!currentFriend) {
+        chatMessages.innerHTML = '';
+        return;
+      }
       chatMessages.innerHTML = '';
-      for (const msg of friends[currentFriend]) {
+      friends[currentFriend].forEach(msg => {
         const div = document.createElement('div');
         div.className = 'message ' + (msg.fromUser ? 'user' : 'other');
         div.textContent = msg.text;
         chatMessages.appendChild(div);
-      }
+      });
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
+    // Send message
     function sendMessage() {
       const text = messageInput.value.trim();
-      if (!text || !currentFriend) return;
+      if (!text) return;
+      if (!currentFriend) {
+        alert('Please select a friend to chat with.');
+        return;
+      }
+
       friends[currentFriend].push({ text, fromUser: true });
       renderMessages();
       messageInput.value = '';
+      messageInput.focus();
     }
 
+    // Open settings popup
+    function openSettings() {
+      usernameInput.value = username;
+      themeSwitch.checked = body.getAttribute('data-theme') === 'dark';
+      settingsOverlay.classList.add('active');
+      usernameInput.focus();
+    }
+
+    // Close settings popup
+    function closeSettings() {
+      settingsOverlay.classList.remove('active');
+      openSettingsBtn.focus();
+    }
+
+    // Save username on change
+    usernameInput.addEventListener('input', e => {
+      username = e.target.value.trim() || 'User123';
+      // Optional: Show username somewhere in UI if needed
+    });
+
+    // Toggle dark mode
+    themeSwitch.addEventListener('change', () => {
+      if (themeSwitch.checked) {
+        body.setAttribute('data-theme', 'dark');
+      } else {
+        body.setAttribute('data-theme', 'light');
+      }
+    });
+
+    // Event listeners
+    addFriendBtn.addEventListener('click', addFriend);
+    friendInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addFriend();
+    });
+
+    sendMessageBtn.addEventListener('click', sendMessage);
     messageInput.addEventListener('keydown', e => {
       if (e.key === 'Enter') sendMessage();
     });
 
-    // Theme toggle
-    const themeSwitch = document.getElementById('themeSwitch');
-    themeSwitch.addEventListener('change', () => {
-      document.body.setAttribute('data-theme', themeSwitch.checked ? 'dark' : 'light');
+    openSettingsBtn.addEventListener('click', openSettings);
+    closeSettingsBtn.addEventListener('click', closeSettings);
+
+    // Close settings on overlay click (outside popup)
+    settingsOverlay.addEventListener('click', e => {
+      if (e.target === settingsOverlay) {
+        closeSettings();
+      }
     });
-  </script>
+
+    // Close settings on ESC key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && settingsOverlay.classList.contains('active')) {
+        closeSettings();
+      }
+    });
+
+    // Initial rendering
+    renderFriends();
+
+  })();
+</script>
+
 </body>
 </html>
