@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chat App with Settings Popup</title>
+  <title>Chat App with Inbox & Startup Screen</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -15,6 +15,7 @@
       --bubble-other: #e0e0e0;
       --border: #ddd;
       --input-bg: #f0f0f0;
+      --unread-badge-bg: #d93025;
     }
 
     [data-theme="dark"] {
@@ -25,6 +26,7 @@
       --bubble-other: #444;
       --border: #444;
       --input-bg: #3a3a3a;
+      --unread-badge-bg: #ea4335;
     }
 
     * {
@@ -40,6 +42,7 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
 
     .app {
@@ -49,67 +52,93 @@
       height: 100%;
     }
 
-    /* Sidebar (Friends) */
+    /* Sidebar / Inbox */
     .sidebar {
-      width: 280px;
+      width: 320px;
       background: var(--surface);
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       padding: 1rem;
+      overflow-y: auto;
     }
 
     .sidebar h2 {
       margin-bottom: 1rem;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       font-weight: 600;
+      user-select: none;
     }
 
-    .friends-list {
+    .inbox-list {
       flex: 1;
       overflow-y: auto;
-      margin-bottom: 1rem;
     }
 
-    .friend {
-      padding: 0.5rem;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
+    .inbox-item {
+      padding: 0.7rem 0.9rem;
+      border-radius: 8px;
+      margin-bottom: 0.4rem;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid transparent;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-      transition: background-color 0.2s ease;
+      flex-direction: column;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+      position: relative;
     }
 
-    .friend.selected {
-      background-color: var(--accent);
+    .inbox-item:hover {
+      background-color: #eaf3ff;
+    }
+
+    .inbox-item.selected {
+      border-color: var(--accent);
+      background-color: #d2e3fc;
+    }
+
+    .inbox-header {
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .inbox-preview {
+      font-size: 0.9rem;
+      color: #555;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    [data-theme="dark"] .inbox-preview {
+      color: #bbb;
+    }
+
+    .unread-badge {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background-color: var(--unread-badge-bg);
       color: white;
-    }
-
-    .friend button {
-      background: none;
-      border: none;
-      color: inherit;
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 12px;
+      min-width: 20px;
+      text-align: center;
       user-select: none;
-    }
-
-    .friend:hover:not(.selected) {
-      background-color: #ddd;
     }
 
     .add-friend {
+      margin-top: 1rem;
       display: flex;
       gap: 0.5rem;
     }
 
     .add-friend input {
       flex: 1;
-      padding: 0.4rem 0.6rem;
+      padding: 0.45rem 0.7rem;
       background: var(--input-bg);
       border: 1px solid var(--border);
       border-radius: 4px;
@@ -120,12 +149,13 @@
       background: var(--accent);
       color: white;
       border: none;
-      padding: 0.4rem 0.8rem;
+      padding: 0.45rem 0.85rem;
       border-radius: 4px;
       font-weight: 600;
       cursor: pointer;
       font-size: 1rem;
       transition: background-color 0.3s ease;
+      user-select: none;
     }
 
     .add-friend button:hover {
@@ -144,7 +174,8 @@
       padding: 1rem;
       border-bottom: 1px solid var(--border);
       font-weight: 600;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
+      user-select: none;
     }
 
     .chat-messages {
@@ -154,15 +185,17 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      background: var(--bg);
     }
 
     .message {
       max-width: 60%;
-      padding: 0.6rem 0.9rem;
+      padding: 0.65rem 1rem;
       border-radius: 16px;
       font-size: 0.95rem;
       word-break: break-word;
       white-space: pre-wrap;
+      user-select: text;
     }
 
     .user {
@@ -176,6 +209,7 @@
       align-self: flex-start;
       background: var(--bubble-other);
       border-bottom-left-radius: 4px;
+      color: var(--text);
     }
 
     .chat-input {
@@ -204,6 +238,7 @@
       cursor: pointer;
       font-size: 1rem;
       transition: background-color 0.3s ease;
+      user-select: none;
     }
 
     .chat-input button:hover {
@@ -224,6 +259,7 @@
       cursor: pointer;
       z-index: 1000;
       transition: background-color 0.3s ease;
+      user-select: none;
     }
 
     .settings-button:hover {
@@ -292,253 +328,379 @@
       position: absolute;
       top: 10px;
       right: 10px;
-      background: none;
+      background: transparent;
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
       color: var(--text);
+      user-select: none;
+      font-weight: 600;
+      line-height: 1;
     }
 
-    .settings-popup .close-btn:hover {
+    /* Startup Screen */
+    .startup-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      user-select: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .startup-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .startup-screen h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
       color: var(--accent);
     }
 
-    /* Responsive */
-    @media (max-width: 700px) {
-      .sidebar {
-        width: 200px;
-      }
+    .startup-screen p {
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      color: var(--text);
+      max-width: 300px;
+      text-align: center;
+    }
 
-      .chat-input input {
-        font-size: 0.9rem;
-      }
+    .startup-screen button {
+      background: var(--accent);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      font-size: 1.1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
 
-      .chat-input button {
-        font-size: 0.9rem;
-      }
+    .startup-screen button:hover {
+      background: #1669c1;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.15);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
     }
   </style>
 </head>
 <body data-theme="light">
-
-  <!-- Settings popup button -->
-  <button class="settings-button" id="openSettingsBtn" aria-label="Open settings">Settings ⚙️</button>
-
   <div class="app">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <h2>Friends</h2>
-      <div class="friends-list" id="friendsList" tabindex="0" aria-label="Friends list"></div>
+    <aside class="sidebar" aria-label="Inbox and friends list">
+      <h2>Inbox</h2>
+      <div class="inbox-list" id="inboxList"></div>
+
       <div class="add-friend">
-        <input id="friendInput" type="text" placeholder="Add friend..." aria-label="Add friend name" />
-        <button id="addFriendBtn">Add</button>
+        <input id="newFriendInput" type="text" placeholder="Add friend username" aria-label="Add friend username"/>
+        <button id="addFriendBtn" aria-label="Add Friend">Add</button>
       </div>
     </aside>
-
-    <!-- Chat Main -->
-    <main class="chat" aria-live="polite" aria-atomic="false" aria-relevant="additions">
-      <div class="chat-header" id="chatHeader" aria-live="polite">Select a friend</div>
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input">
-        <input id="messageInput" type="text" placeholder="Type a message..." aria-label="Type your message" autocomplete="off" />
-        <button id="sendMessageBtn">Send</button>
-      </div>
+    <main class="chat" aria-live="polite">
+      <header class="chat-header" id="chatHeader">Select a friend to chat</header>
+      <section class="chat-messages" id="chatMessages" tabindex="0" aria-label="Chat messages"></section>
+      <form class="chat-input" id="chatForm" aria-label="Send message form">
+        <input id="chatInput" type="text" placeholder="Type a message..." autocomplete="off" aria-label="Type your message" />
+        <button type="submit" aria-label="Send message">Send</button>
+      </form>
     </main>
   </div>
 
-  <!-- Settings Popup -->
-  <div class="settings-popup-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" tabindex="-1">
+  <button class="settings-button" id="settingsBtn" aria-label="Open settings">Settings</button>
+
+  <div class="settings-popup-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="settings-popup">
-      <button class="close-btn" id="closeSettingsBtn" aria-label="Close settings">&times;</button>
-      <h2 id="settingsTitle">Settings & Account</h2>
-
-      <label for="usernameInput">Username:</label>
-      <input type="text" id="usernameInput" maxlength="20" />
-
-      <label>
-        <input type="checkbox" id="themeSwitch" />
-        Dark Mode
-      </label>
+      <button class="close-btn" id="settingsCloseBtn" aria-label="Close settings">&times;</button>
+      <h2 id="settingsTitle">Settings</h2>
+      <label for="usernameInput">Your Username:</label>
+      <input type="text" id="usernameInput" maxlength="20" autocomplete="off" />
+      <label><input type="checkbox" id="darkModeToggle" /> Dark Mode</label>
     </div>
   </div>
 
-<script>
-  (() => {
-    let currentFriend = null;
-    const friends = {};
-    let username = 'User123';
+  <div class="startup-screen" id="startupScreen" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle" aria-describedby="welcomeDesc">
+    <h1 id="welcomeTitle">Welcome to ChatApp</h1>
+    <p id="welcomeDesc">Connect with your friends by chatting in real time. Add friends, send messages, and enjoy!</p>
+    <button id="startChattingBtn">Start Chatting</button>
+  </div>
 
-    const friendsList = document.getElementById('friendsList');
-    const friendInput = document.getElementById('friendInput');
-    const addFriendBtn = document.getElementById('addFriendBtn');
-    const chatHeader = document.getElementById('chatHeader');
+  <script>
+    // --- Data Structures ---
+    // friends: { username: string, messages: Array<{sender: 'user'|'friend', text: string, read: boolean, timestamp: number}> }
+    // userName: string
+    // selectedFriend: string | null
+
+    let userName = localStorage.getItem('username') || 'You';
+    let friends = JSON.parse(localStorage.getItem('friends') || '{}');
+    let selectedFriend = null;
+
+    // Elements
+    const inboxList = document.getElementById('inboxList');
     const chatMessages = document.getElementById('chatMessages');
-    const messageInput = document.getElementById('messageInput');
-    const sendMessageBtn = document.getElementById('sendMessageBtn');
-
+    const chatHeader = document.getElementById('chatHeader');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const newFriendInput = document.getElementById('newFriendInput');
+    const addFriendBtn = document.getElementById('addFriendBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
     const settingsOverlay = document.getElementById('settingsOverlay');
-    const openSettingsBtn = document.getElementById('openSettingsBtn');
-    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const settingsCloseBtn = document.getElementById('settingsCloseBtn');
     const usernameInput = document.getElementById('usernameInput');
-    const themeSwitch = document.getElementById('themeSwitch');
-    const body = document.body;
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const startupScreen = document.getElementById('startupScreen');
+    const startChattingBtn = document.getElementById('startChattingBtn');
 
-    // Add friend
-    function addFriend() {
-      const name = friendInput.value.trim();
-      if (!name) return alert("Friend name cannot be empty.");
-      if (friends[name]) {
-        alert("Friend already exists.");
+    // Initialize Username input
+    usernameInput.value = userName;
+
+    // Save friends to localStorage
+    function saveData() {
+      localStorage.setItem('friends', JSON.stringify(friends));
+      localStorage.setItem('username', userName);
+    }
+
+    // Add a new friend
+    function addFriend(username) {
+      username = username.trim();
+      if (!username) {
+        alert('Please enter a valid username.');
         return;
       }
-      friends[name] = [];
-      friendInput.value = '';
-      renderFriends();
-    }
-
-    // Remove friend
-    function removeFriend(name) {
-      if (!confirm(`Remove friend "${name}"?`)) return;
-      delete friends[name];
-      if (currentFriend === name) {
-        currentFriend = null;
-        chatHeader.textContent = 'Select a friend';
-        chatMessages.innerHTML = '';
+      if (friends[username]) {
+        alert('Friend already added.');
+        return;
       }
-      renderFriends();
+      if (username === userName) {
+        alert("You can't add yourself.");
+        return;
+      }
+      friends[username] = { messages: [] };
+      saveData();
+      renderInbox();
+      newFriendInput.value = '';
     }
 
-    // Select friend
-    function selectFriend(name) {
-      if (currentFriend === name) return; // Already selected
-      currentFriend = name;
-      chatHeader.textContent = `Chatting with ${name}`;
-      renderFriends();
-      renderMessages();
-      messageInput.focus();
-    }
-
-    // Render friends list
-    function renderFriends() {
-      friendsList.innerHTML = '';
-      Object.keys(friends).forEach(name => {
-        const el = document.createElement('div');
-        el.className = 'friend' + (currentFriend === name ? ' selected' : '');
-        el.tabIndex = 0;
-        el.setAttribute('role', 'button');
-        el.setAttribute('aria-pressed', currentFriend === name ? 'true' : 'false');
-        el.innerHTML = `
-          <span>${name}</span>
-          <button aria-label="Remove friend ${name}">&times;</button>
-        `;
-        el.querySelector('button').addEventListener('click', e => {
-          e.stopPropagation();
-          removeFriend(name);
-        });
-        el.addEventListener('click', () => selectFriend(name));
-        el.addEventListener('keydown', e => {
-          if(e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            selectFriend(name);
-          }
-        });
-        friendsList.appendChild(el);
+    // Render inbox list with preview and unread count
+    function renderInbox() {
+      inboxList.innerHTML = '';
+      // Sort friends by last message timestamp descending
+      const sortedFriends = Object.entries(friends).sort((a, b) => {
+        const aMsgs = a[1].messages;
+        const bMsgs = b[1].messages;
+        const aLast = aMsgs.length ? aMsgs[aMsgs.length -1].timestamp : 0;
+        const bLast = bMsgs.length ? bMsgs[bMsgs.length -1].timestamp : 0;
+        return bLast - aLast;
       });
+
+      for (const [friend, data] of sortedFriends) {
+        const item = document.createElement('div');
+        item.className = 'inbox-item';
+        if (friend === selectedFriend) item.classList.add('selected');
+        item.setAttribute('tabindex', '0');
+        item.setAttribute('role', 'button');
+        item.setAttribute('aria-label', `Chat with ${friend}`);
+
+        // Latest message preview
+        const lastMsg = data.messages.length ? data.messages[data.messages.length -1] : null;
+        let previewText = lastMsg ? (lastMsg.sender === 'user' ? `You: ${lastMsg.text}` : lastMsg.text) : 'No messages yet';
+
+        // Count unread messages from friend
+        const unreadCount = data.messages.reduce((acc, msg) => acc + (msg.sender === 'friend' && !msg.read ? 1 : 0), 0);
+
+        item.innerHTML = `
+          <div class="inbox-header">${friend}</div>
+          <div class="inbox-preview">${previewText}</div>
+        `;
+
+        if (unreadCount > 0) {
+          const badge = document.createElement('div');
+          badge.className = 'unread-badge';
+          badge.textContent = unreadCount;
+          item.appendChild(badge);
+        }
+
+        item.onclick = () => {
+          selectFriend(friend);
+        };
+        item.onkeydown = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectFriend(friend);
+          }
+        };
+
+        inboxList.appendChild(item);
+      }
     }
 
-    // Render messages for current friend
+    // Select friend chat
+    function selectFriend(friend) {
+      selectedFriend = friend;
+      chatHeader.textContent = `Chat with ${friend}`;
+      chatInput.disabled = false;
+      chatInput.focus();
+
+      // Mark all friend's messages as read
+      if (friends[friend]) {
+        for (const msg of friends[friend].messages) {
+          if (msg.sender === 'friend') {
+            msg.read = true;
+          }
+        }
+      }
+
+      saveData();
+      renderInbox();
+      renderMessages();
+    }
+
+    // Render messages for selected friend
     function renderMessages() {
-      if (!currentFriend) {
-        chatMessages.innerHTML = '';
+      chatMessages.innerHTML = '';
+      if (!selectedFriend) {
+        chatMessages.innerHTML = '<p style="text-align:center; color:#888;">No friend selected</p>';
+        chatInput.disabled = true;
         return;
       }
-      chatMessages.innerHTML = '';
-      friends[currentFriend].forEach(msg => {
+      const msgs = friends[selectedFriend].messages;
+
+      for (const msg of msgs) {
         const div = document.createElement('div');
-        div.className = 'message ' + (msg.fromUser ? 'user' : 'other');
+        div.className = `message ${msg.sender === 'user' ? 'user' : 'other'}`;
         div.textContent = msg.text;
         chatMessages.appendChild(div);
-      });
+      }
+
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Send message
-    function sendMessage() {
-      const text = messageInput.value.trim();
-      if (!text) return;
-      if (!currentFriend) {
-        alert('Please select a friend to chat with.');
+    // Send a new message
+    function sendMessage(text) {
+      if (!selectedFriend) {
+        alert('Select a friend first.');
         return;
       }
+      text = text.trim();
+      if (!text) return;
 
-      friends[currentFriend].push({ text, fromUser: true });
+      // Add user's message
+      friends[selectedFriend].messages.push({
+        sender: 'user',
+        text,
+        read: true,
+        timestamp: Date.now()
+      });
+
+      saveData();
+      renderInbox();
       renderMessages();
-      messageInput.value = '';
-      messageInput.focus();
+
+      // Simulate friend reply after random delay
+      setTimeout(() => {
+        receiveMessage(selectedFriend, "Got your message: " + text);
+      }, 1000 + Math.random() * 2000);
     }
 
-    // Open settings popup
-    function openSettings() {
-      usernameInput.value = username;
-      themeSwitch.checked = body.getAttribute('data-theme') === 'dark';
+    // Receive message from friend
+    function receiveMessage(friend, text) {
+      if (!friends[friend]) return;
+
+      friends[friend].messages.push({
+        sender: 'friend',
+        text,
+        read: selectedFriend === friend, // mark read if chat is open
+        timestamp: Date.now()
+      });
+
+      saveData();
+      renderInbox();
+      if (selectedFriend === friend) {
+        renderMessages();
+      }
+    }
+
+    // Event Listeners
+    chatForm.addEventListener('submit', e => {
+      e.preventDefault();
+      sendMessage(chatInput.value);
+      chatInput.value = '';
+    });
+
+    addFriendBtn.addEventListener('click', () => {
+      addFriend(newFriendInput.value);
+    });
+
+    newFriendInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        addFriend(newFriendInput.value);
+      }
+    });
+
+    // Settings
+    settingsBtn.addEventListener('click', () => {
+      usernameInput.value = userName;
+      darkModeToggle.checked = document.body.getAttribute('data-theme') === 'dark';
       settingsOverlay.classList.add('active');
       usernameInput.focus();
-    }
+    });
 
-    // Close settings popup
-    function closeSettings() {
+    settingsCloseBtn.addEventListener('click', () => {
       settingsOverlay.classList.remove('active');
-      openSettingsBtn.focus();
-    }
-
-    // Save username on change
-    usernameInput.addEventListener('input', e => {
-      username = e.target.value.trim() || 'User123';
-      // Optional: Show username somewhere in UI if needed
     });
 
-    // Toggle dark mode
-    themeSwitch.addEventListener('change', () => {
-      if (themeSwitch.checked) {
-        body.setAttribute('data-theme', 'dark');
-      } else {
-        body.setAttribute('data-theme', 'light');
-      }
-    });
-
-    // Event listeners
-    addFriendBtn.addEventListener('click', addFriend);
-    friendInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') addFriend();
-    });
-
-    sendMessageBtn.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') sendMessage();
-    });
-
-    openSettingsBtn.addEventListener('click', openSettings);
-    closeSettingsBtn.addEventListener('click', closeSettings);
-
-    // Close settings on overlay click (outside popup)
     settingsOverlay.addEventListener('click', e => {
       if (e.target === settingsOverlay) {
-        closeSettings();
+        settingsOverlay.classList.remove('active');
       }
     });
 
-    // Close settings on ESC key
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && settingsOverlay.classList.contains('active')) {
-        closeSettings();
+    usernameInput.addEventListener('input', () => {
+      const val = usernameInput.value.trim();
+      if (val) userName = val;
+      saveData();
+    });
+
+    darkModeToggle.addEventListener('change', () => {
+      if (darkModeToggle.checked) {
+        document.body.setAttribute('data-theme', 'dark');
+      } else {
+        document.body.setAttribute('data-theme', 'light');
       }
+    });
+
+    // Startup Screen logic
+    startChattingBtn.addEventListener('click', () => {
+      startupScreen.classList.add('hidden');
+      setTimeout(() => {
+        startupScreen.style.display = 'none';
+      }, 300);
     });
 
     // Initial rendering
-    renderFriends();
+    renderInbox();
+    renderMessages();
 
-  })();
-</script>
-
+    // Disable input until a friend is selected
+    chatInput.disabled = true;
+  </script>
 </body>
 </html>
