@@ -1,47 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Basic Page Needs
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <meta charset="utf-8" />
-    <title>Chat!</title>
-    <meta name="description" content="" />
-    <meta name="author" content="" />
+    <!-- Metadata -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A simple and secure real-time chat app." />
+    <meta name="author" content="Your Name or Company" />
 
-    <!-- Mobile Specific Metas
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chat App</title>
 
-    <!-- FONT
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-
-    <!-- CSS
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <!-- CSS -->
     <link rel="stylesheet" href="css/normalize.css" />
     <link rel="stylesheet" href="css/skeleton.css" />
     <link rel="stylesheet" href="styles.css" />
 
-    <!-- Favicon
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <link rel="icon" type="image/ico" href="favicon.ico" />
-    <script src="/dist/index.js" type="module"></script>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <!-- JavaScript (React or other frontend app) -->
+    <script src="/dist/index.js" type="module" defer></script>
   </head>
+
   <body>
-    <!-- Primary Page Layout
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
-    <div class="container" style="width: 95%; height: 100%">
-      <div class="row" style="height: 100%">
-        <div class="one-third column" style="margin-top: 25%">
-          <h4><b>Chat</b>, </h4>
-          <p>
-         
-          </p>
-        </div>
-        <div class="two-thirds column" id="root"></div>
+    <div class="container" style="width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center;">
+      <div class="row" style="width: 100%;">
+        <aside class="one-third column" style="padding: 2rem;">
+          <h1>Welcome to <strong>Chat</strong> 💬</h1>
+          <p>Start chatting in real-time. Secure, fast, and private.</p>
+        </aside>
+
+        <main class="two-thirds column" id="root" style="border-left: 1px solid #ddd; padding-left: 2rem;">
+          <!-- React app mounts here -->
+          <div id="chat-loading" style="text-align: center; color: #888;">
+            Loading chat interface...
+          </div>
+        </main>
       </div>
     </div>
-
-    <!-- End Document
-  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   </body>
 </html>
