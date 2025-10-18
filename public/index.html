@@ -13,7 +13,7 @@
     let friends = JSON.parse(localStorage.getItem('friends') || '{}');
     let selectedFriend = null;
 
-    // Elements
+    // Elements (add null checks for safety)
     const inboxList = document.getElementById('inboxList');
     const chatMessages = document.getElementById('chatMessages');
     const chatHeader = document.getElementById('chatHeader');
@@ -29,7 +29,7 @@
     const startupScreen = document.getElementById('startupScreen');
     const startChattingBtn = document.getElementById('startChattingBtn');
 
-    usernameInput.value = userName;
+    if (usernameInput) usernameInput.value = userName;
 
     function saveData() {
       localStorage.setItem('friends', JSON.stringify(friends));
@@ -53,16 +53,18 @@
       friends[username] = { messages: [] };
       saveData();
       renderInbox();
-      newFriendInput.value = '';
+      if (newFriendInput) newFriendInput.value = '';
     }
 
     function renderInbox() {
+      if (!inboxList) return;
+
       inboxList.innerHTML = '';
       const sortedFriends = Object.entries(friends).sort((a, b) => {
         const aMsgs = a[1].messages;
         const bMsgs = b[1].messages;
-        const aLast = aMsgs.length ? aMsgs[aMsgs.length -1].timestamp : 0;
-        const bLast = bMsgs.length ? bMsgs[bMsgs.length -1].timestamp : 0;
+        const aLast = aMsgs.length ? aMsgs[aMsgs.length - 1].timestamp : 0;
+        const bLast = bMsgs.length ? bMsgs[bMsgs.length - 1].timestamp : 0;
         return bLast - aLast;
       });
 
@@ -74,10 +76,15 @@
         item.setAttribute('role', 'button');
         item.setAttribute('aria-label', `Chat with ${friend}`);
 
-        const lastMsg = data.messages.length ? data.messages[data.messages.length -1] : null;
-        let previewText = lastMsg ? (lastMsg.sender === 'user' ? `You: ${lastMsg.text}` : lastMsg.text) : 'No messages yet';
+        const lastMsg = data.messages.length ? data.messages[data.messages.length - 1] : null;
+        let previewText = lastMsg
+          ? (lastMsg.sender === 'user' ? `You: ${lastMsg.text}` : lastMsg.text)
+          : 'No messages yet';
 
-        const unreadCount = data.messages.reduce((acc, msg) => acc + (msg.sender === 'friend' && !msg.read ? 1 : 0), 0);
+        const unreadCount = data.messages.reduce(
+          (acc, msg) => acc + (msg.sender === 'friend' && !msg.read ? 1 : 0),
+          0
+        );
 
         item.innerHTML = `
           <div class="inbox-header">${friend}</div>
@@ -105,9 +112,11 @@
 
     function selectFriend(friend) {
       selectedFriend = friend;
-      chatHeader.textContent = `Chat with ${friend}`;
-      chatInput.disabled = false;
-      chatInput.focus();
+      if (chatHeader) chatHeader.textContent = `Chat with ${friend}`;
+      if (chatInput) {
+        chatInput.disabled = false;
+        chatInput.focus();
+      }
 
       if (friends[friend]) {
         for (const msg of friends[friend].messages) {
@@ -123,10 +132,12 @@
     }
 
     function renderMessages() {
+      if (!chatMessages) return;
+
       chatMessages.innerHTML = '';
       if (!selectedFriend) {
         chatMessages.innerHTML = '<p style="text-align:center; color:#888;">No friend selected</p>';
-        chatInput.disabled = true;
+        if (chatInput) chatInput.disabled = true;
         return;
       }
       const msgs = friends[selectedFriend].messages;
@@ -139,7 +150,7 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // ✅ UPDATED sendMessage WITHOUT echo
+    // Send message without echoing back immediately
     function sendMessage(text) {
       if (!selectedFriend) {
         alert('Select a friend first.');
@@ -160,7 +171,7 @@
       renderMessages();
     }
 
-    // Still here for future use if needed
+    // Simulate receiving a message from a friend (optional)
     function receiveMessage(friend, text) {
       if (!friends[friend]) return;
 
@@ -178,57 +189,75 @@
       }
     }
 
-    chatForm.addEventListener('submit', e => {
-      e.preventDefault();
-      sendMessage(chatInput.value);
-      chatInput.value = '';
-    });
+    if (chatForm) {
+      chatForm.addEventListener('submit', e => {
+        e.preventDefault();
+        sendMessage(chatInput.value);
+        chatInput.value = '';
+      });
+    }
 
-    addFriendBtn.addEventListener('click', () => {
-      addFriend(newFriendInput.value);
-    });
+    if (addFriendBtn) {
+      addFriendBtn.addEventListener('click', () => {
+        addFriend(newFriendInput.value);
+      });
+    }
 
-    newFriendInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') addFriend(newFriendInput.value);
-    });
+    if (newFriendInput) {
+      newFriendInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') addFriend(newFriendInput.value);
+      });
+    }
 
-    settingsBtn.addEventListener('click', () => {
-      usernameInput.value = userName;
-      darkModeToggle.checked = document.body.getAttribute('data-theme') === 'dark';
-      settingsOverlay.classList.add('active');
-      usernameInput.focus();
-    });
+    if (settingsBtn) {
+      settingsBtn.addEventListener('click', () => {
+        usernameInput.value = userName;
+        darkModeToggle.checked = document.body.getAttribute('data-theme') === 'dark';
+        settingsOverlay.classList.add('active');
+        usernameInput.focus();
+      });
+    }
 
-    settingsCloseBtn.addEventListener('click', () => {
-      settingsOverlay.classList.remove('active');
-    });
-
-    settingsOverlay.addEventListener('click', e => {
-      if (e.target === settingsOverlay) {
+    if (settingsCloseBtn) {
+      settingsCloseBtn.addEventListener('click', () => {
         settingsOverlay.classList.remove('active');
-      }
-    });
+      });
+    }
 
-    usernameInput.addEventListener('input', () => {
-      const val = usernameInput.value.trim();
-      if (val) userName = val;
-      saveData();
-    });
+    if (settingsOverlay) {
+      settingsOverlay.addEventListener('click', e => {
+        if (e.target === settingsOverlay) {
+          settingsOverlay.classList.remove('active');
+        }
+      });
+    }
 
-    darkModeToggle.addEventListener('change', () => {
-      document.body.setAttribute('data-theme', darkModeToggle.checked ? 'dark' : 'light');
-    });
+    if (usernameInput) {
+      usernameInput.addEventListener('input', () => {
+        const val = usernameInput.value.trim();
+        if (val) userName = val;
+        saveData();
+      });
+    }
 
-    startChattingBtn.addEventListener('click', () => {
-      startupScreen.classList.add('hidden');
-      setTimeout(() => {
-        startupScreen.style.display = 'none';
-      }, 300);
-    });
+    if (darkModeToggle) {
+      darkModeToggle.addEventListener('change', () => {
+        document.body.setAttribute('data-theme', darkModeToggle.checked ? 'dark' : 'light');
+      });
+    }
+
+    if (startChattingBtn) {
+      startChattingBtn.addEventListener('click', () => {
+        startupScreen.classList.add('hidden');
+        setTimeout(() => {
+          startupScreen.style.display = 'none';
+        }, 300);
+      });
+    }
 
     renderInbox();
     renderMessages();
-    chatInput.disabled = true;
+    if (chatInput) chatInput.disabled = true;
   </script>
 </body>
 </html>
