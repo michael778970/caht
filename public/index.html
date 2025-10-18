@@ -1,309 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Wave Chat</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat</title>
   <style>
-    :root {
-      --bg: #ffffff;
-      --sidebar: #f8f9fa;
-      --border: #e0e0e0;
-      --accent: #1a73e8;
-      --text: #202124;
-      --bubble-user: #e8f0fe;
-      --bubble-other: #f1f3f4;
-    }
-
     body {
+      font-family: 'Google Sans', Arial, sans-serif;
       margin: 0;
-      font-family: "Roboto", Arial, sans-serif;
-      color: var(--text);
+      background: #f5f5f5;
       display: flex;
+      flex-direction: column;
       height: 100vh;
-      background: var(--bg);
     }
-
-    #inboxList {
-      width: 280px;
-      border-right: 1px solid var(--border);
-      background: var(--sidebar);
-      display: flex;
-      flex-direction: column;
-      box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
-    }
-
-    #inboxList h3 {
-      padding: 16px;
-      margin: 0;
+    header {
+      background: #4285F4;
+      color: white;
+      padding: 14px;
+      text-align: center;
+      font-size: 20px;
       font-weight: 500;
-      color: #5f6368;
     }
-
-    #friends {
+    #chat {
       flex: 1;
-      overflow-y: auto;
-    }
-
-    #friends button {
-      display: block;
-      width: 100%;
-      border: none;
-      background: none;
-      text-align: left;
-      padding: 12px 20px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    #friends button:hover {
-      background: #e8eaed;
-    }
-
-    #friends button.active {
-      background: #e8f0fe;
-      color: var(--accent);
-      font-weight: 500;
-    }
-
-    #inboxList input,
-    #inboxList button {
-      margin: 8px 12px;
       padding: 10px;
-      font-size: 14px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-
-    #inboxList button {
-      background: var(--accent);
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    #chatArea {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: var(--bg);
-    }
-
-    #chatHeader {
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      background: var(--sidebar);
-    }
-
-    #chatHeader::before {
-      content: "💬";
-      margin-right: 10px;
-    }
-
-    #chatMessages {
-      flex: 1;
-      padding: 20px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
     }
-
-    .message {
-      margin: 8px 0;
-      padding: 10px 14px;
-      border-radius: 18px;
+    .msg {
       max-width: 70%;
-      word-wrap: break-word;
-      position: relative;
-      line-height: 1.4;
-      font-size: 15px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .user {
-      background: var(--bubble-user);
-      align-self: flex-end;
-      margin-left: auto;
-    }
-
-    .other {
-      background: var(--bubble-other);
-      align-self: flex-start;
-      margin-right: auto;
-    }
-
-    .read-status {
-      font-size: 0.75em;
-      color: #5f6368;
-      margin-top: 3px;
-      text-align: right;
-    }
-
-    #chatForm {
-      display: flex;
-      padding: 12px 16px;
-      border-top: 1px solid var(--border);
-      background: var(--bg);
-      box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    #chatInput {
-      flex: 1;
       padding: 10px 14px;
+      margin: 6px 0;
+      border-radius: 18px;
       font-size: 15px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+    .sent {
+      background: #dcf8c6;
+      align-self: flex-end;
+    }
+    .recv {
+      background: white;
+      align-self: flex-start;
+    }
+    #input-area {
+      display: flex;
+      background: white;
+      border-top: 1px solid #ddd;
+      padding: 10px;
+    }
+    input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
       border-radius: 20px;
-      border: 1px solid var(--border);
       outline: none;
-      transition: box-shadow 0.2s;
+      font-size: 15px;
     }
-
-    #chatInput:focus {
-      box-shadow: 0 0 0 2px var(--accent);
-    }
-
-    #chatForm button {
-      margin-left: 10px;
-      background: var(--accent);
+    button {
+      background: #4285F4;
       color: white;
       border: none;
+      padding: 10px 18px;
       border-radius: 50%;
-      width: 44px;
-      height: 44px;
+      margin-left: 8px;
       cursor: pointer;
       font-size: 18px;
     }
-
-    #chatForm button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
+    button:hover {
+      background: #3367D6;
     }
   </style>
 </head>
 <body>
-  <div id="inboxList">
-    <h3>Chats</h3>
-    <div id="friends"></div>
-    <input type="text" id="newFriendInput" placeholder="Start new chat..." />
-    <button onclick="addFriend()">+</button>
-  </div>
-
-  <div id="chatArea">
-    <div id="chatHeader">Select a chat</div>
-    <div id="chatMessages"></div>
-    <form id="chatForm">
-      <input type="text" id="chatInput" placeholder="Send a message" disabled />
-      <button type="submit" disabled>➤</button>
-    </form>
+  <header>Google Chat Clone</header>
+  <div id="chat"></div>
+  <div id="input-area">
+    <input id="msgInput" placeholder="Type a message..." />
+    <button id="sendBtn">➤</button>
   </div>
 
   <script>
-    let userName = localStorage.getItem('username') || prompt("Enter your username:");
-    localStorage.setItem('username', userName);
+    const chatDiv = document.getElementById("chat");
+    const input = document.getElementById("msgInput");
+    const sendBtn = document.getElementById("sendBtn");
 
-    let selectedFriend = null;
-    let socket = null;
+    // Replace with your Cloudflare Worker URL
+    const socket = new WebSocket("wss://your-worker-name.yourdomain.workers.dev");
 
-    const friendsDiv = document.getElementById('friends');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatHeader = document.getElementById('chatHeader');
-    const chatInput = document.getElementById('chatInput');
-    const chatForm = document.getElementById('chatForm');
-    const newFriendInput = document.getElementById('newFriendInput');
-    const sendButton = chatForm.querySelector('button');
-
-    let friends = JSON.parse(localStorage.getItem('friends') || '{}');
-
-    function saveFriends() {
-      localStorage.setItem('friends', JSON.stringify(friends));
+    function appendMessage(text, type) {
+      const msg = document.createElement("div");
+      msg.classList.add("msg", type);
+      msg.textContent = text;
+      chatDiv.appendChild(msg);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
-    function renderFriends() {
-      friendsDiv.innerHTML = '';
-      for (let friend in friends) {
-        const btn = document.createElement('button');
-        btn.textContent = friend;
-        btn.className = friend === selectedFriend ? 'active' : '';
-        btn.onclick = () => selectFriend(friend);
-        friendsDiv.appendChild(btn);
-      }
-    }
-
-    function addFriend() {
-      const name = newFriendInput.value.trim();
-      if (!name || name === userName) return;
-      if (!friends[name]) friends[name] = { messages: [] };
-      saveFriends();
-      renderFriends();
-      newFriendInput.value = '';
-    }
-
-    function connectToRoom(friend) {
-      const wsUrl = `wss://YOUR_WORKER_URL/connect?user=${encodeURIComponent(userName)}&room=${encodeURIComponent(friend)}`;
-      socket = new WebSocket(wsUrl);
-
-      socket.onopen = () => console.log("Connected to", friend);
-
-      socket.onmessage = e => {
-        const data = JSON.parse(e.data);
-        if (data.type === 'history') {
-          friends[friend].messages = data.messages;
-        } else if (data.type === 'message') {
-          friends[friend].messages.push(data.msg);
-        }
-        saveFriends();
-        renderMessages();
-      };
-    }
-
-    function selectFriend(friend) {
-      selectedFriend = friend;
-      renderFriends();
-      chatHeader.textContent = friend;
-      chatInput.disabled = false;
-      sendButton.disabled = false;
-
-      friends[friend].messages.forEach(m => m.read = true);
-      saveFriends();
-      renderMessages();
-
-      if (socket) socket.close();
-      connectToRoom(friend);
-    }
-
-    function renderMessages() {
-      chatMessages.innerHTML = '';
-      if (!selectedFriend) return;
-      const msgs = friends[selectedFriend].messages || [];
-      msgs.forEach(msg => {
-        const div = document.createElement('div');
-        div.className = `message ${msg.sender === userName ? 'user' : 'other'}`;
-        div.innerHTML = `
-          <div>${msg.text}</div>
-          <div class="read-status">${msg.read ? 'Read' : 'Unread'}</div>
-        `;
-        chatMessages.appendChild(div);
-      });
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    chatForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const text = chatInput.value.trim();
-      if (!text || !selectedFriend || !socket || socket.readyState !== WebSocket.OPEN) return;
-
-      const msg = { sender: userName, text, read: true, timestamp: Date.now() };
-      socket.send(JSON.stringify({ text }));
-      friends[selectedFriend].messages.push(msg);
-      saveFriends();
-      renderMessages();
-      chatInput.value = '';
+    socket.addEventListener("open", () => {
+      console.log("Connected to chat server");
     });
 
-    renderFriends();
+    socket.addEventListener("message", (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "message") {
+        appendMessage(data.text, "recv");
+      }
+    });
+
+    function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      socket.send(JSON.stringify({ type: "message", text }));
+      appendMessage(text, "sent");
+      input.value = "";
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", e => {
+      if (e.key === "Enter") sendMessage();
+    });
   </script>
 </body>
 </html>
