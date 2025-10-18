@@ -93,8 +93,8 @@
     let userName = localStorage.getItem('username') || prompt("Enter your username:");
     localStorage.setItem('username', userName);
 
-    let friends = JSON.parse(localStorage.getItem('friends') || '{}');
     let selectedFriend = null;
+    let socket = null;
 
     const friendsDiv = document.getElementById('friends');
     const chatMessages = document.getElementById('chatMessages');
@@ -104,7 +104,9 @@
     const newFriendInput = document.getElementById('newFriendInput');
     const sendButton = chatForm.querySelector('button');
 
-    function saveData() {
+    let friends = JSON.parse(localStorage.getItem('friends') || '{}');
+
+    function saveFriends() {
       localStorage.setItem('friends', JSON.stringify(friends));
     }
 
@@ -124,9 +126,31 @@
       const name = newFriendInput.value.trim();
       if (!name || name === userName) return;
       if (!friends[name]) friends[name] = { messages: [] };
-      saveData();
+      saveFriends();
       renderFriends();
       newFriendInput.value = '';
+    }
+
+    function connectToRoom(friend) {
+      const wsUrl = `wss://YOUR_WORKER_URL/connect?user=${encodeURIComponent(userName)}&room=${encodeURIComponent(friend)}`;
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => console.log("Connected to room", friend);
+
+      socket.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === 'history') {
+          friends[friend].messages = data.messages;
+          saveFriends();
+          renderMessages();
+        } else if (data.type === 'message') {
+          friends[friend].messages.push(data.msg);
+          saveFriends();
+          renderMessages();
+        }
+      };
+
+      socket.onclose = () => console.log("Disconnected");
     }
 
     function selectFriend(friend) {
@@ -135,23 +159,22 @@
       chatInput.disabled = false;
       sendButton.disabled = false;
 
-      // Mark their messages as read
-      friends[friend].messages.forEach(msg => {
-        if (msg.sender === 'friend') msg.read = true;
-      });
-
-      saveData();
+      friends[friend].messages.forEach(m => m.read = true);
+      saveFriends();
       renderMessages();
+
+      if (socket) socket.close();
+      connectToRoom(friend);
     }
 
     function renderMessages() {
       chatMessages.innerHTML = '';
       if (!selectedFriend) return;
 
-      const msgs = friends[selectedFriend].messages;
+      const msgs = friends[selectedFriend].messages || [];
       msgs.forEach(msg => {
         const div = document.createElement('div');
-        div.className = `message ${msg.sender === 'user' ? 'user' : 'other'}`;
+        div.className = `message ${msg.sender === userName ? 'user' : 'other'}`;
         div.innerHTML = `
           <div>${msg.text}</div>
           <div class="read-status">${msg.read ? 'Read' : 'Unread'}</div>
@@ -161,45 +184,16 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function sendMessage(text) {
-      if (!selectedFriend) return;
-      text = text.trim();
-      if (!text) return;
-
-      const myMessage = {
-        sender: 'user',
-        text,
-        read: true,
-        timestamp: Date.now()
-      };
-
-      const theirCopy = {
-        sender: 'friend',
-        text,
-        read: false,
-        timestamp: Date.now()
-      };
-
-      friends[selectedFriend].messages.push(myMessage);
-
-      // In this demo: simulate what your friend will receive (in their tab)
-      if (!friends[userName]) friends[userName] = { messages: [] };
-      if (!friends[userName].messages) friends[userName].messages = [];
-      if (userName !== selectedFriend) {
-        // insert in the "friend"'s storage (simulate)
-        let otherData = JSON.parse(localStorage.getItem('friends') || '{}');
-        if (!otherData[userName]) otherData[userName] = { messages: [] };
-        otherData[userName].messages.push(theirCopy);
-        localStorage.setItem('friends', JSON.stringify(otherData));
-      }
-
-      saveData();
-      renderMessages();
-    }
-
     chatForm.addEventListener('submit', e => {
       e.preventDefault();
-      sendMessage(chatInput.value);
+      const text = chatInput.value.trim();
+      if (!text || !selectedFriend || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+      const msg = { sender: userName, text, read: true, timestamp: Date.now() };
+      socket.send(JSON.stringify({ text }));
+      friends[selectedFriend].messages.push(msg);
+      saveFriends();
+      renderMessages();
       chatInput.value = '';
     });
 
