@@ -1,263 +1,472 @@
-<!-- This is the start of your full HTML document -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- ...[everything before remains unchanged]... -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🔥 Friendly Chat App 🔥</title>
+<style>
+  /* Basic Reset */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    transition: background-color 0.3s, color 0.3s;
+  }
+  body[data-theme='dark'] {
+    background-color: #1e1e1e;
+    color: #ddd;
+  }
+
+  /* Sidebar (Inbox) */
+  #inboxList {
+    width: 250px;
+    border-right: 1px solid #ccc;
+    overflow-y: auto;
+    background: #fff;
+    transition: background 0.3s;
+  }
+  body[data-theme='dark'] #inboxList {
+    background: #2c2c2c;
+    border-color: #444;
+  }
+  .inbox-item {
+    padding: 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+  }
+  body[data-theme='dark'] .inbox-item {
+    border-color: #444;
+  }
+  .inbox-item:hover {
+    background-color: #eee;
+  }
+  body[data-theme='dark'] .inbox-item:hover {
+    background-color: #444;
+  }
+  .inbox-item.selected {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .inbox-header {
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .inbox-preview {
+    font-size: 0.9em;
+    color: #666;
+  }
+  body[data-theme='dark'] .inbox-preview {
+    color: #bbb;
+  }
+
+  .unread-badge {
+    background-color: #dc3545;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 7px;
+    font-size: 0.75em;
+    float: right;
+    margin-top: -25px;
+  }
+
+  /* Main Chat Area */
+  #chatArea {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #chatHeader {
+    padding: 15px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
+    font-weight: 700;
+  }
+  body[data-theme='dark'] #chatHeader {
+    background-color: #2c2c2c;
+    border-color: #444;
+  }
+
+  #chatMessages {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #fff;
+    transition: background-color 0.3s;
+  }
+  body[data-theme='dark'] #chatMessages {
+    background-color: #121212;
+  }
+  .message {
+    margin-bottom: 12px;
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    line-height: 1.3;
+    word-wrap: break-word;
+  }
+  .message.user {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 0;
+  }
+  .message.other {
+    background-color: #e9ecef;
+    color: #333;
+    align-self: flex-start;
+    border-bottom-left-radius: 0;
+  }
+  body[data-theme='dark'] .message.other {
+    background-color: #333;
+    color: #eee;
+  }
+
+  /* Chat input area */
+  #chatForm {
+    display: flex;
+    border-top: 1px solid #ccc;
+  }
+  body[data-theme='dark'] #chatForm {
+    border-color: #444;
+  }
+  #chatInput {
+    flex-grow: 1;
+    border: none;
+    padding: 15px;
+    font-size: 1em;
+  }
+  #chatInput:disabled {
+    background-color: #ddd;
+    color: #888;
+  }
+  #chatForm button {
+    background-color: #007bff;
+    border: none;
+    color: white;
+    padding: 0 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  #chatForm button:hover:not(:disabled) {
+    background-color: #0056b3;
+  }
+  #chatForm button:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+  }
+
+  /* Add friend input and button */
+  #addFriendContainer {
+    padding: 10px 15px;
+    border-top: 1px solid #ccc;
+    background: #f8f9fa;
+    display: flex;
+    gap: 10px;
+  }
+  body[data-theme='dark'] #addFriendContainer {
+    background: #2c2c2c;
+    border-color: #444;
+  }
+  #newFriendInput {
+    flex-grow: 1;
+    padding: 10px;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  body[data-theme='dark'] #newFriendInput {
+    background: #121212;
+    border-color: #555;
+    color: #eee;
+  }
+  #addFriendBtn {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    background-color: #28a745;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  #addFriendBtn:hover {
+    background-color: #218838;
+  }
+
+  /* Dark mode toggle */
+  #darkModeToggleContainer {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.9em;
+    user-select: none;
+  }
+  #darkModeToggle {
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+
+  /* Responsive */
+  @media(max-width: 600px) {
+    body {
+      flex-direction: column;
+    }
+    #inboxList {
+      width: 100%;
+      height: 120px;
+      border-right: none;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      overflow-x: auto;
+    }
+    .inbox-item {
+      flex: 0 0 auto;
+      border-bottom: none;
+      border-right: 1px solid #eee;
+      padding: 10px 15px;
+    }
+    #chatArea {
+      height: calc(100vh - 180px);
+    }
+  }
+</style>
 </head>
 <body data-theme="light">
-  <!-- ...[UI and structure remains unchanged]... -->
 
-  <script>
-    // --- Data Structures ---
-    let userName = localStorage.getItem('username') || 'You';
-    let friends = JSON.parse(localStorage.getItem('friends') || '{}');
-    let selectedFriend = null;
+  <div id="darkModeToggleContainer">
+    Dark Mode
+    <input type="checkbox" id="darkModeToggle" />
+  </div>
 
-    // Elements (add null checks for safety)
-    const inboxList = document.getElementById('inboxList');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatHeader = document.getElementById('chatHeader');
-    const chatForm = document.getElementById('chatForm');
-    const chatInput = document.getElementById('chatInput');
-    const newFriendInput = document.getElementById('newFriendInput');
-    const addFriendBtn = document.getElementById('addFriendBtn');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsOverlay = document.getElementById('settingsOverlay');
-    const settingsCloseBtn = document.getElementById('settingsCloseBtn');
-    const usernameInput = document.getElementById('usernameInput');
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const startupScreen = document.getElementById('startupScreen');
-    const startChattingBtn = document.getElementById('startChattingBtn');
+  <div id="inboxList"></div>
 
-    if (usernameInput) usernameInput.value = userName;
+  <div id="chatArea">
+    <h2 id="chatHeader">No friend selected</h2>
+    <div id="chatMessages"><p style="text-align:center; color:#888;">Select a friend to start chatting.</p></div>
 
-    function saveData() {
-      localStorage.setItem('friends', JSON.stringify(friends));
-      localStorage.setItem('username', userName);
+    <form id="chatForm">
+      <input type="text" id="chatInput" placeholder="Type a message" disabled autocomplete="off" />
+      <button type="submit" disabled>Send</button>
+    </form>
+
+    <div id="addFriendContainer">
+      <input type="text" id="newFriendInput" placeholder="Add friend username" autocomplete="off" />
+      <button id="addFriendBtn">Add Friend</button>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // --- Data ---
+  let userName = localStorage.getItem('username') || 'You';
+  let friends = JSON.parse(localStorage.getItem('friends') || '{}');
+  let selectedFriend = null;
+
+  // Elements
+  const inboxList = document.getElementById('inboxList');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatHeader = document.getElementById('chatHeader');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const newFriendInput = document.getElementById('newFriendInput');
+  const addFriendBtn = document.getElementById('addFriendBtn');
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const sendBtn = chatForm.querySelector('button');
+
+  // Save data to localStorage
+  function saveData() {
+    localStorage.setItem('friends', JSON.stringify(friends));
+    localStorage.setItem('username', userName);
+  }
+
+  // Add friend
+  function addFriend(username) {
+    username = username.trim();
+    if (!username) {
+      alert('Please enter a valid username.');
+      return;
+    }
+    if (friends[username]) {
+      alert('Friend already added.');
+      return;
+    }
+    if (username === userName) {
+      alert("You can't add yourself.");
+      return;
+    }
+    friends[username] = { messages: [] };
+    saveData();
+    renderInbox();
+    newFriendInput.value = '';
+  }
+
+  // Render the friend list
+  function renderInbox() {
+    inboxList.innerHTML = '';
+    const sortedFriends = Object.entries(friends).sort((a, b) => {
+      const aMsgs = a[1].messages;
+      const bMsgs = b[1].messages;
+      const aLast = aMsgs.length ? aMsgs[aMsgs.length - 1].timestamp : 0;
+      const bLast = bMsgs.length ? bMsgs[bMsgs.length - 1].timestamp : 0;
+      return bLast - aLast;
+    });
+
+    if (sortedFriends.length === 0) {
+      inboxList.innerHTML = '<p style="padding:15px; color:#666;">No friends added. Add one below!</p>';
+      return;
     }
 
-    function addFriend(username) {
-      username = username.trim();
-      if (!username) {
-        alert('Please enter a valid username.');
-        return;
+    for (const [friend, data] of sortedFriends) {
+      const item = document.createElement('div');
+      item.className = 'inbox-item';
+      if (friend === selectedFriend) item.classList.add('selected');
+      item.setAttribute('tabindex', '0');
+      item.setAttribute('role', 'button');
+      item.setAttribute('aria-label', `Chat with ${friend}`);
+
+      const lastMsg = data.messages.length ? data.messages[data.messages.length - 1] : null;
+      let previewText = lastMsg
+        ? (lastMsg.sender === 'user' ? `You: ${lastMsg.text}` : lastMsg.text)
+        : 'No messages yet';
+
+      const unreadCount = data.messages.reduce(
+        (acc, msg) => acc + (msg.sender === 'friend' && !msg.read ? 1 : 0),
+        0
+      );
+
+      item.innerHTML = `
+        <div class="inbox-header">${friend}</div>
+        <div class="inbox-preview">${previewText}</div>
+      `;
+
+      if (unreadCount > 0) {
+        const badge = document.createElement('div');
+        badge.className = 'unread-badge';
+        badge.textContent = unreadCount;
+        item.appendChild(badge);
       }
-      if (friends[username]) {
-        alert('Friend already added.');
-        return;
-      }
-      if (username === userName) {
-        alert("You can't add yourself.");
-        return;
-      }
-      friends[username] = { messages: [] };
-      saveData();
-      renderInbox();
-      if (newFriendInput) newFriendInput.value = '';
-    }
 
-    function renderInbox() {
-      if (!inboxList) return;
-
-      inboxList.innerHTML = '';
-      const sortedFriends = Object.entries(friends).sort((a, b) => {
-        const aMsgs = a[1].messages;
-        const bMsgs = b[1].messages;
-        const aLast = aMsgs.length ? aMsgs[aMsgs.length - 1].timestamp : 0;
-        const bLast = bMsgs.length ? bMsgs[bMsgs.length - 1].timestamp : 0;
-        return bLast - aLast;
-      });
-
-      for (const [friend, data] of sortedFriends) {
-        const item = document.createElement('div');
-        item.className = 'inbox-item';
-        if (friend === selectedFriend) item.classList.add('selected');
-        item.setAttribute('tabindex', '0');
-        item.setAttribute('role', 'button');
-        item.setAttribute('aria-label', `Chat with ${friend}`);
-
-        const lastMsg = data.messages.length ? data.messages[data.messages.length - 1] : null;
-        let previewText = lastMsg
-          ? (lastMsg.sender === 'user' ? `You: ${lastMsg.text}` : lastMsg.text)
-          : 'No messages yet';
-
-        const unreadCount = data.messages.reduce(
-          (acc, msg) => acc + (msg.sender === 'friend' && !msg.read ? 1 : 0),
-          0
-        );
-
-        item.innerHTML = `
-          <div class="inbox-header">${friend}</div>
-          <div class="inbox-preview">${previewText}</div>
-        `;
-
-        if (unreadCount > 0) {
-          const badge = document.createElement('div');
-          badge.className = 'unread-badge';
-          badge.textContent = unreadCount;
-          item.appendChild(badge);
+      item.onclick = () => selectFriend(friend);
+      item.onkeydown = e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectFriend(friend);
         }
+      };
 
-        item.onclick = () => selectFriend(friend);
-        item.onkeydown = e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            selectFriend(friend);
-          }
-        };
-
-        inboxList.appendChild(item);
-      }
+      inboxList.appendChild(item);
     }
+  }
 
-    function selectFriend(friend) {
-      selectedFriend = friend;
-      if (chatHeader) chatHeader.textContent = `Chat with ${friend}`;
-      if (chatInput) {
-        chatInput.disabled = false;
-        chatInput.focus();
-      }
+  // Select a friend to chat
+  function selectFriend(friend) {
+    selectedFriend = friend;
+    chatHeader.textContent = `Chat with ${friend}`;
+    chatInput.disabled = false;
+    sendBtn.disabled = false;
+    chatInput.focus();
 
-      if (friends[friend]) {
-        for (const msg of friends[friend].messages) {
-          if (msg.sender === 'friend') {
-            msg.read = true;
-          }
+    if (friends[friend]) {
+      for (const msg of friends[friend].messages) {
+        if (msg.sender === 'friend') {
+          msg.read = true;
         }
       }
-
-      saveData();
-      renderInbox();
-      renderMessages();
     }
 
-    function renderMessages() {
-      if (!chatMessages) return;
-
-      chatMessages.innerHTML = '';
-      if (!selectedFriend) {
-        chatMessages.innerHTML = '<p style="text-align:center; color:#888;">No friend selected</p>';
-        if (chatInput) chatInput.disabled = true;
-        return;
-      }
-      const msgs = friends[selectedFriend].messages;
-      for (const msg of msgs) {
-        const div = document.createElement('div');
-        div.className = `message ${msg.sender === 'user' ? 'user' : 'other'}`;
-        div.textContent = msg.text;
-        chatMessages.appendChild(div);
-      }
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    // Send message without echoing back immediately
-    function sendMessage(text) {
-      if (!selectedFriend) {
-        alert('Select a friend first.');
-        return;
-      }
-      text = text.trim();
-      if (!text) return;
-
-      friends[selectedFriend].messages.push({
-        sender: 'user',
-        text,
-        read: true,
-        timestamp: Date.now()
-      });
-
-      saveData();
-      renderInbox();
-      renderMessages();
-    }
-
-    // Simulate receiving a message from a friend (optional)
-    function receiveMessage(friend, text) {
-      if (!friends[friend]) return;
-
-      friends[friend].messages.push({
-        sender: 'friend',
-        text,
-        read: selectedFriend === friend,
-        timestamp: Date.now()
-      });
-
-      saveData();
-      renderInbox();
-      if (selectedFriend === friend) {
-        renderMessages();
-      }
-    }
-
-    if (chatForm) {
-      chatForm.addEventListener('submit', e => {
-        e.preventDefault();
-        sendMessage(chatInput.value);
-        chatInput.value = '';
-      });
-    }
-
-    if (addFriendBtn) {
-      addFriendBtn.addEventListener('click', () => {
-        addFriend(newFriendInput.value);
-      });
-    }
-
-    if (newFriendInput) {
-      newFriendInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') addFriend(newFriendInput.value);
-      });
-    }
-
-    if (settingsBtn) {
-      settingsBtn.addEventListener('click', () => {
-        usernameInput.value = userName;
-        darkModeToggle.checked = document.body.getAttribute('data-theme') === 'dark';
-        settingsOverlay.classList.add('active');
-        usernameInput.focus();
-      });
-    }
-
-    if (settingsCloseBtn) {
-      settingsCloseBtn.addEventListener('click', () => {
-        settingsOverlay.classList.remove('active');
-      });
-    }
-
-    if (settingsOverlay) {
-      settingsOverlay.addEventListener('click', e => {
-        if (e.target === settingsOverlay) {
-          settingsOverlay.classList.remove('active');
-        }
-      });
-    }
-
-    if (usernameInput) {
-      usernameInput.addEventListener('input', () => {
-        const val = usernameInput.value.trim();
-        if (val) userName = val;
-        saveData();
-      });
-    }
-
-    if (darkModeToggle) {
-      darkModeToggle.addEventListener('change', () => {
-        document.body.setAttribute('data-theme', darkModeToggle.checked ? 'dark' : 'light');
-      });
-    }
-
-    if (startChattingBtn) {
-      startChattingBtn.addEventListener('click', () => {
-        startupScreen.classList.add('hidden');
-        setTimeout(() => {
-          startupScreen.style.display = 'none';
-        }, 300);
-      });
-    }
-
+    saveData();
     renderInbox();
     renderMessages();
-    if (chatInput) chatInput.disabled = true;
-  </script>
+  }
+
+  // Render chat messages
+  function renderMessages() {
+    chatMessages.innerHTML = '';
+    if (!selectedFriend) {
+      chatMessages.innerHTML = '<p style="text-align:center; color:#888;">Select a friend to start chatting.</p>';
+      chatInput.disabled = true;
+      sendBtn.disabled = true;
+      return;
+    }
+    const msgs = friends[selectedFriend].messages;
+    for (const msg of msgs) {
+      const div = document.createElement('div');
+      div.className = `message ${msg.sender === 'user' ? 'user' : 'other'}`;
+      div.textContent = msg.text;
+      chatMessages.appendChild(div);
+    }
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // Send a message
+  function sendMessage(text) {
+    if (!selectedFriend) {
+      alert('Select a friend first.');
+      return;
+    }
+    text = text.trim();
+    if (!text) return;
+
+    friends[selectedFriend].messages.push({
+      sender: 'user',
+      text,
+      read: true,
+      timestamp: Date.now()
+    });
+
+    saveData();
+    renderInbox();
+    renderMessages();
+  }
+
+  // Toggle dark mode
+  function setDarkMode(on) {
+    document.body.setAttribute('data-theme', on ? 'dark' : 'light');
+    localStorage.setItem('darkMode', on ? '1' : '0');
+  }
+
+  // Event listeners
+  chatForm.addEventListener('submit', e => {
+    e.preventDefault();
+    sendMessage(chatInput.value);
+    chatInput.value = '';
+  });
+
+  addFriendBtn.addEventListener('click', () => {
+    addFriend(newFriendInput.value);
+  });
+
+  newFriendInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addFriend(newFriendInput.value);
+    }
+  });
+
+  darkModeToggle.addEventListener('change', () => {
+    setDarkMode(darkModeToggle.checked);
+  });
+
+  // Initialize dark mode based on saved preference
+  const savedDarkMode = localStorage.getItem('darkMode') === '1';
+  darkModeToggle.checked = savedDarkMode;
+  setDarkMode(savedDarkMode);
+
+  // Initial render
+  renderInbox();
+  renderMessages();
+})();
+</script>
+
 </body>
 </html>
