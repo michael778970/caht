@@ -1,454 +1,14 @@
+<!-- This is the start of your full HTML document -->
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chat App with Inbox & Startup Screen</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #f5f5f5;
-      --surface: #fff;
-      --text: #222;
-      --accent: #1a73e8;
-      --bubble-user: #1a73e8;
-      --bubble-other: #e0e0e0;
-      --border: #ddd;
-      --input-bg: #f0f0f0;
-      --unread-badge-bg: #d93025;
-    }
-
-    [data-theme="dark"] {
-      --bg: #1e1e1e;
-      --surface: #2c2c2c;
-      --text: #f5f5f5;
-      --bubble-user: #1a73e8;
-      --bubble-other: #444;
-      --border: #444;
-      --input-bg: #3a3a3a;
-      --unread-badge-bg: #ea4335;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    .app {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      height: 100%;
-    }
-
-    /* Sidebar / Inbox */
-    .sidebar {
-      width: 320px;
-      background: var(--surface);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      padding: 1rem;
-      overflow-y: auto;
-    }
-
-    .sidebar h2 {
-      margin-bottom: 1rem;
-      font-size: 1.3rem;
-      font-weight: 600;
-      user-select: none;
-    }
-
-    .inbox-list {
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .inbox-item {
-      padding: 0.7rem 0.9rem;
-      border-radius: 8px;
-      margin-bottom: 0.4rem;
-      cursor: pointer;
-      user-select: none;
-      border: 1px solid transparent;
-      display: flex;
-      flex-direction: column;
-      transition: background-color 0.2s ease, border-color 0.2s ease;
-      position: relative;
-    }
-
-    .inbox-item:hover {
-      background-color: #eaf3ff;
-    }
-
-    .inbox-item.selected {
-      border-color: var(--accent);
-      background-color: #d2e3fc;
-    }
-
-    .inbox-header {
-      font-weight: 600;
-      font-size: 1.05rem;
-      margin-bottom: 0.2rem;
-    }
-
-    .inbox-preview {
-      font-size: 0.9rem;
-      color: #555;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    [data-theme="dark"] .inbox-preview {
-      color: #bbb;
-    }
-
-    .unread-badge {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      background-color: var(--unread-badge-bg);
-      color: white;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 12px;
-      min-width: 20px;
-      text-align: center;
-      user-select: none;
-    }
-
-    .add-friend {
-      margin-top: 1rem;
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .add-friend input {
-      flex: 1;
-      padding: 0.45rem 0.7rem;
-      background: var(--input-bg);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-
-    .add-friend button {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 0.45rem 0.85rem;
-      border-radius: 4px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-      user-select: none;
-    }
-
-    .add-friend button:hover {
-      background: #1669c1;
-    }
-
-    /* Chat Main */
-    .chat {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: var(--surface);
-    }
-
-    .chat-header {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border);
-      font-weight: 600;
-      font-size: 1.2rem;
-      user-select: none;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      background: var(--bg);
-    }
-
-    .message {
-      max-width: 60%;
-      padding: 0.65rem 1rem;
-      border-radius: 16px;
-      font-size: 0.95rem;
-      word-break: break-word;
-      white-space: pre-wrap;
-      user-select: text;
-    }
-
-    .user {
-      align-self: flex-end;
-      background: var(--bubble-user);
-      color: white;
-      border-bottom-right-radius: 4px;
-    }
-
-    .other {
-      align-self: flex-start;
-      background: var(--bubble-other);
-      border-bottom-left-radius: 4px;
-      color: var(--text);
-    }
-
-    .chat-input {
-      display: flex;
-      gap: 0.5rem;
-      padding: 1rem;
-      border-top: 1px solid var(--border);
-    }
-
-    .chat-input input {
-      flex: 1;
-      padding: 0.75rem 1rem;
-      border-radius: 20px;
-      border: 1px solid #ccc;
-      background-color: var(--input-bg);
-      font-size: 1rem;
-    }
-
-    .chat-input button {
-      padding: 0.75rem 1.2rem;
-      border: none;
-      border-radius: 20px;
-      background-color: var(--accent);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-      user-select: none;
-    }
-
-    .chat-input button:hover {
-      background-color: #1669c1;
-    }
-
-    /* Settings Button */
-    .settings-button {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: var(--accent);
-      border: none;
-      color: white;
-      padding: 0.5rem 1rem;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      z-index: 1000;
-      transition: background-color 0.3s ease;
-      user-select: none;
-    }
-
-    .settings-button:hover {
-      background: #1669c1;
-    }
-
-    /* Settings Popup Overlay */
-    .settings-popup-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-    }
-
-    .settings-popup-overlay.active {
-      display: flex;
-    }
-
-    /* Settings Popup Content */
-    .settings-popup {
-      background: var(--surface);
-      border-radius: 8px;
-      width: 320px;
-      max-width: 90vw;
-      padding: 1.5rem;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      position: relative;
-    }
-
-    .settings-popup h2 {
-      margin: 0 0 1rem 0;
-      font-weight: 700;
-      font-size: 1.3rem;
-    }
-
-    .settings-popup label {
-      font-weight: 600;
-      display: block;
-      margin-bottom: 0.25rem;
-    }
-
-    .settings-popup input[type="text"] {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      font-size: 1rem;
-      background: var(--input-bg);
-      color: var(--text);
-    }
-
-    .settings-popup input[type="checkbox"] {
-      transform: scale(1.3);
-      margin-right: 0.5rem;
-      vertical-align: middle;
-      cursor: pointer;
-    }
-
-    .settings-popup .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: transparent;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--text);
-      user-select: none;
-      font-weight: 600;
-      line-height: 1;
-    }
-
-    /* Startup Screen */
-    .startup-screen {
-      position: fixed;
-      inset: 0;
-      background: var(--surface);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-      user-select: none;
-      transition: opacity 0.3s ease;
-    }
-
-    .startup-screen.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .startup-screen h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-      color: var(--accent);
-    }
-
-    .startup-screen p {
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-      color: var(--text);
-      max-width: 300px;
-      text-align: center;
-    }
-
-    .startup-screen button {
-      background: var(--accent);
-      border: none;
-      color: white;
-      font-weight: 600;
-      padding: 0.75rem 1.5rem;
-      font-size: 1.1rem;
-      border-radius: 30px;
-      cursor: pointer;
-      user-select: none;
-      transition: background-color 0.3s ease;
-    }
-
-    .startup-screen button:hover {
-      background: #1669c1;
-    }
-
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background-color: rgba(0,0,0,0.15);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-  </style>
+  <!-- ...[everything before remains unchanged]... -->
 </head>
 <body data-theme="light">
-  <div class="app">
-    <aside class="sidebar" aria-label="Inbox and friends list">
-      <h2>Inbox</h2>
-      <div class="inbox-list" id="inboxList"></div>
-
-      <div class="add-friend">
-        <input id="newFriendInput" type="text" placeholder="Add friend username" aria-label="Add friend username"/>
-        <button id="addFriendBtn" aria-label="Add Friend">Add</button>
-      </div>
-    </aside>
-    <main class="chat" aria-live="polite">
-      <header class="chat-header" id="chatHeader">Select a friend to chat</header>
-      <section class="chat-messages" id="chatMessages" tabindex="0" aria-label="Chat messages"></section>
-      <form class="chat-input" id="chatForm" aria-label="Send message form">
-        <input id="chatInput" type="text" placeholder="Type a message..." autocomplete="off" aria-label="Type your message" />
-        <button type="submit" aria-label="Send message">Send</button>
-      </form>
-    </main>
-  </div>
-
-  <button class="settings-button" id="settingsBtn" aria-label="Open settings">Settings</button>
-
-  <div class="settings-popup-overlay" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
-    <div class="settings-popup">
-      <button class="close-btn" id="settingsCloseBtn" aria-label="Close settings">&times;</button>
-      <h2 id="settingsTitle">Settings</h2>
-      <label for="usernameInput">Your Username:</label>
-      <input type="text" id="usernameInput" maxlength="20" autocomplete="off" />
-      <label><input type="checkbox" id="darkModeToggle" /> Dark Mode</label>
-    </div>
-  </div>
-
-  <div class="startup-screen" id="startupScreen" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle" aria-describedby="welcomeDesc">
-    <h1 id="welcomeTitle">Welcome to ChatApp</h1>
-    <p id="welcomeDesc">Connect with your friends by chatting in real time. Add friends, send messages, and enjoy!</p>
-    <button id="startChattingBtn">Start Chatting</button>
-  </div>
+  <!-- ...[UI and structure remains unchanged]... -->
 
   <script>
     // --- Data Structures ---
-    // friends: { username: string, messages: Array<{sender: 'user'|'friend', text: string, read: boolean, timestamp: number}> }
-    // userName: string
-    // selectedFriend: string | null
-
     let userName = localStorage.getItem('username') || 'You';
     let friends = JSON.parse(localStorage.getItem('friends') || '{}');
     let selectedFriend = null;
@@ -469,16 +29,13 @@
     const startupScreen = document.getElementById('startupScreen');
     const startChattingBtn = document.getElementById('startChattingBtn');
 
-    // Initialize Username input
     usernameInput.value = userName;
 
-    // Save friends to localStorage
     function saveData() {
       localStorage.setItem('friends', JSON.stringify(friends));
       localStorage.setItem('username', userName);
     }
 
-    // Add a new friend
     function addFriend(username) {
       username = username.trim();
       if (!username) {
@@ -499,10 +56,8 @@
       newFriendInput.value = '';
     }
 
-    // Render inbox list with preview and unread count
     function renderInbox() {
       inboxList.innerHTML = '';
-      // Sort friends by last message timestamp descending
       const sortedFriends = Object.entries(friends).sort((a, b) => {
         const aMsgs = a[1].messages;
         const bMsgs = b[1].messages;
@@ -519,11 +74,9 @@
         item.setAttribute('role', 'button');
         item.setAttribute('aria-label', `Chat with ${friend}`);
 
-        // Latest message preview
         const lastMsg = data.messages.length ? data.messages[data.messages.length -1] : null;
         let previewText = lastMsg ? (lastMsg.sender === 'user' ? `You: ${lastMsg.text}` : lastMsg.text) : 'No messages yet';
 
-        // Count unread messages from friend
         const unreadCount = data.messages.reduce((acc, msg) => acc + (msg.sender === 'friend' && !msg.read ? 1 : 0), 0);
 
         item.innerHTML = `
@@ -538,10 +91,8 @@
           item.appendChild(badge);
         }
 
-        item.onclick = () => {
-          selectFriend(friend);
-        };
-        item.onkeydown = (e) => {
+        item.onclick = () => selectFriend(friend);
+        item.onkeydown = e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             selectFriend(friend);
@@ -552,14 +103,12 @@
       }
     }
 
-    // Select friend chat
     function selectFriend(friend) {
       selectedFriend = friend;
       chatHeader.textContent = `Chat with ${friend}`;
       chatInput.disabled = false;
       chatInput.focus();
 
-      // Mark all friend's messages as read
       if (friends[friend]) {
         for (const msg of friends[friend].messages) {
           if (msg.sender === 'friend') {
@@ -573,7 +122,6 @@
       renderMessages();
     }
 
-    // Render messages for selected friend
     function renderMessages() {
       chatMessages.innerHTML = '';
       if (!selectedFriend) {
@@ -582,18 +130,16 @@
         return;
       }
       const msgs = friends[selectedFriend].messages;
-
       for (const msg of msgs) {
         const div = document.createElement('div');
         div.className = `message ${msg.sender === 'user' ? 'user' : 'other'}`;
         div.textContent = msg.text;
         chatMessages.appendChild(div);
       }
-
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    // Send a new message
+    // ✅ UPDATED sendMessage WITHOUT echo
     function sendMessage(text) {
       if (!selectedFriend) {
         alert('Select a friend first.');
@@ -602,7 +148,6 @@
       text = text.trim();
       if (!text) return;
 
-      // Add user's message
       friends[selectedFriend].messages.push({
         sender: 'user',
         text,
@@ -613,21 +158,16 @@
       saveData();
       renderInbox();
       renderMessages();
-
-      // Simulate friend reply after random delay
-      setTimeout(() => {
-        receiveMessage(selectedFriend, "Got your message: " + text);
-      }, 1000 + Math.random() * 2000);
     }
 
-    // Receive message from friend
+    // Still here for future use if needed
     function receiveMessage(friend, text) {
       if (!friends[friend]) return;
 
       friends[friend].messages.push({
         sender: 'friend',
         text,
-        read: selectedFriend === friend, // mark read if chat is open
+        read: selectedFriend === friend,
         timestamp: Date.now()
       });
 
@@ -638,7 +178,6 @@
       }
     }
 
-    // Event Listeners
     chatForm.addEventListener('submit', e => {
       e.preventDefault();
       sendMessage(chatInput.value);
@@ -650,12 +189,9 @@
     });
 
     newFriendInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        addFriend(newFriendInput.value);
-      }
+      if (e.key === 'Enter') addFriend(newFriendInput.value);
     });
 
-    // Settings
     settingsBtn.addEventListener('click', () => {
       usernameInput.value = userName;
       darkModeToggle.checked = document.body.getAttribute('data-theme') === 'dark';
@@ -680,14 +216,9 @@
     });
 
     darkModeToggle.addEventListener('change', () => {
-      if (darkModeToggle.checked) {
-        document.body.setAttribute('data-theme', 'dark');
-      } else {
-        document.body.setAttribute('data-theme', 'light');
-      }
+      document.body.setAttribute('data-theme', darkModeToggle.checked ? 'dark' : 'light');
     });
 
-    // Startup Screen logic
     startChattingBtn.addEventListener('click', () => {
       startupScreen.classList.add('hidden');
       setTimeout(() => {
@@ -695,11 +226,8 @@
       }, 300);
     });
 
-    // Initial rendering
     renderInbox();
     renderMessages();
-
-    // Disable input until a friend is selected
     chatInput.disabled = true;
   </script>
 </body>
